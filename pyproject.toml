@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "facet2_inj_ml_model_571"
+version = "0.1.0"
+description = "PyTorch model and LUME-Torch wrapper for FACET-II injector surrogate to predict beam properties at screen 571"
+readme = "README.MD"
+requires-python = ">=3.11"
+dependencies = [
+    "lume-torch @ git+https://github.com/lume-science/lume-torch",
+    "numpy",
+    "pandas",
+    "torch",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "black",
+]
+
+[tool.setuptools.packages.find]
+include = ["facet2_inj_ml_model_571*"]
+
+[tool.setuptools.package-data]
+facet2_inj_ml_model_571 = ["resources/**/*"]

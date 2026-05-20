@@ -1,0 +1,62 @@
+model_class: CovMeanTorchModel
+input_variables:
+  CQ10121:b1_gradient: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
+    default_value: -0.011799106374382973}
+  GUNF:rf_field_scale: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
+    default_value: 50263752.0}
+  GUNF:theta0_deg: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
+    default_value: -75.1767578125}
+  L0AF_phase:theta0_deg: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
+    default_value: -6.569522380828857}
+  L0AF_scale:rf_field_scale: {variable_class: TorchScalarVariable, read_only: false,
+    default_validation_config: none, default_value: 51344420.0}
+  L0BF_phase:theta0_deg: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
+    default_value: 9.902674674987793}
+  L0BF_scale:rf_field_scale: {variable_class: TorchScalarVariable, read_only: false,
+    default_validation_config: none, default_value: 58921828.0}
+  QA10361: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
+    default_value: 3.6512515544891357}
+  QA10371: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
+    default_value: -3.5078792572021484}
+  QE10425: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
+    default_value: 7.4462666511535645}
+  QE10441: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
+    default_value: -6.5387349128723145}
+  QE10511: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
+    default_value: 3.343881130218506}
+  QE10525: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
+    default_value: -2.6851742267608643}
+  SOL10111:solenoid_field_scale: {variable_class: TorchScalarVariable, read_only: false,
+    default_validation_config: none, default_value: 0.2630968987941742}
+  SQ10122:b1_gradient: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
+    default_value: -0.01210846472531557}
+  distgen:VCC: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
+    default_value: 322.28936767578125}
+  distgen:t_dist:sigma_t:value: {variable_class: TorchScalarVariable, read_only: false,
+    default_validation_config: none, default_value: 0.5653553009033203}
+  distgen:total_charge:value: {variable_class: TorchScalarVariable, read_only: false,
+    default_validation_config: none, default_value: 966.6414794921875}
+  impact_VCC_Cal: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
+    default_value: 5.307479113980662e-06}
+output_variables:
+  covariance_matrix:
+    variable_class: TorchNDVariable
+    read_only: false
+    default_validation_config: none
+    shape: [6, 6]
+    dtype: torch.float32
+  mean_x: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none}
+  mean_px: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none}
+  mean_y: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none}
+  mean_py: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none}
+  mean_t: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none}
+  mean_pz: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none}
+input_validation_config: null
+output_validation_config: null
+model: injector_simulator_model.pt
+input_transformers: [injector_simulator_input_transformers_0.pt]
+output_transformers: [injector_simulator_output_transformers_0.pt]
+output_format: tensor
+device: cpu
+fixed_model: true
+precision: single
