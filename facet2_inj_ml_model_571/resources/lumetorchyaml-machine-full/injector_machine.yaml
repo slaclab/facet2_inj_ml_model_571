@@ -1,43 +1,43 @@
 model_class: CovMeanTorchModel
 input_variables:
   QUAD:IN10:121:BCTRL: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
-    default_value: -0.0011900044046342373}
+    default_value: 0.02504105120897293}
   KLYS:LI10:21:AMPL: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
-    default_value: 37.702579498291016}
+    default_value: 39.7486686706543}
   KLYS:LI10:21:PHAS: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
-    default_value: 87.4215087890625}
+    default_value: 78.33125305175781}
   KLYS:LI10:31:PHAS: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
-    default_value: 25.73870277404785}
+    default_value: 18.841331481933594}
   L0AF_scale:rf_field_scale: {variable_class: TorchScalarVariable, read_only: false,
-    default_validation_config: none, default_value: -11400212.0}
+    default_validation_config: none, default_value: -10589968.0}
   KLYS:LI10:41:PHAS: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
-    default_value: 142.26280212402344}
+    default_value: 142.4582061767578}
   L0BF_scale:rf_field_scale: {variable_class: TorchScalarVariable, read_only: false,
-    default_validation_config: none, default_value: 52.0}
+    default_validation_config: none, default_value: 470948.0}
   QUAD:IN10:361:BCTRL: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
-    default_value: -3.853560209274292}
+    default_value: -3.9077823162078857}
   QUAD:IN10:371:BCTRL: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
-    default_value: 3.2690846920013428}
+    default_value: 4.061069965362549}
   QUAD:IN10:425:BCTRL: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
-    default_value: -6.500141143798828}
+    default_value: -6.482541561126709}
   QUAD:IN10:441:BCTRL: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
-    default_value: 7.265590667724609}
+    default_value: 6.888785362243652}
   QUAD:IN10:511:BCTRL: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
-    default_value: -4.145786762237549}
+    default_value: -3.1980559825897217}
   QUAD:IN10:525:BCTRL: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
-    default_value: 3.430837869644165}
+    default_value: 4.583168029785156}
   SOLN:IN10:121:BCTRL: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
-    default_value: 0.364875853061676}
+    default_value: 0.4179247319698334}
   QUAD:IN10:122:BCTRL: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
-    default_value: 0.0002799968933686614}
+    default_value: 0.026834571734070778}
   distgen:VCC: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
-    default_value: 322.5}
+    default_value: 322.6351318359375}
   distgen:t_dist:sigma_t:value: {variable_class: TorchScalarVariable, read_only: false,
-    default_validation_config: none, default_value: -0.058499932289123535}
+    default_validation_config: none, default_value: -0.4168436527252197}
   TORO:IN10:591:TMIT_PC: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
-    default_value: 1020.2904663085938}
+    default_value: 951.08251953125}
   impact_VCC_Cal: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
-    default_value: 0.0}
+    default_value: -2.8754116101481486e-06}
 output_variables:
   covariance_matrix:
     variable_class: TorchNDVariable
