@@ -2,6 +2,7 @@
 # .venv/bin/python train.py
 
 import argparse
+import json
 import time
 from pathlib import Path
 
@@ -26,42 +27,35 @@ def get_feature_target_columns(df: pd.DataFrame):
 
 
 # ── Model ─────────────────────────────────────────────────────────────────────
+def _make_activation(name: str) -> nn.Module:
+    """Create an activation module by name."""
+    activations = {"elu": nn.ELU, "tanh": nn.Tanh, "relu": nn.ReLU, "silu": nn.SiLU}
+    if name.lower() not in activations:
+        raise ValueError(f"Unsupported activation: {name}. Choose from {list(activations)}")
+    return activations[name.lower()]()
+
+
 class CovarianceSurrogateModel(nn.Module):
     """NN predicts Cholesky factors → 6x6 covariance, plus optional mean beam outputs."""
 
     def __init__(self, n_inputs: int, n_chol_outputs: int, n_mean_outputs: int = 0,
                  y_mean=None, y_std=None,
-                 mean_y_mean=None, mean_y_std=None):
+                 mean_y_mean=None, mean_y_std=None,
+                 dropout: float = 0.05, activation: str = "elu"):
         super().__init__()
         self.n_chol_outputs = n_chol_outputs
         self.n_mean_outputs = n_mean_outputs
-        drop = 0.05
-        self.backbone = nn.Sequential(
+        layers = [
             nn.Linear(n_inputs, 100),
-            nn.ELU(),
-            nn.Linear(100, 200),
-            nn.ELU(),
-            nn.Dropout(p=drop),
-            nn.Linear(200, 200),
-            nn.ELU(),
-            nn.Dropout(p=drop),
-            nn.Linear(200, 300),
-            nn.ELU(),
-            nn.Dropout(p=drop),
-            nn.Linear(300, 300),
-            nn.ELU(),
-            nn.Dropout(p=drop),
-            nn.Linear(300, 200),
-            nn.ELU(),
-            nn.Dropout(p=drop),
-            nn.Linear(200, 100),
-            nn.ELU(),
-            nn.Dropout(p=drop),
-            nn.Linear(100, 100),
-            nn.ELU(),
-            nn.Linear(100, 100),
-            nn.ELU(),
-        )
+            _make_activation(activation),
+        ]
+        hidden_sizes = [100, 200, 200, 300, 300, 200, 100, 100, 100]
+        for i in range(len(hidden_sizes) - 1):
+            layers.append(nn.Linear(hidden_sizes[i], hidden_sizes[i + 1]))
+            layers.append(_make_activation(activation))
+            if dropout > 0 and i < len(hidden_sizes) - 3:
+                layers.append(nn.Dropout(p=dropout))
+        self.backbone = nn.Sequential(*layers)
 
         # Cholesky head
         self.chol_head = nn.Linear(100, n_chol_outputs)
@@ -119,12 +113,14 @@ class CovarianceSurrogateModel(nn.Module):
 
 def build_model(n_inputs: int, n_chol_outputs: int, n_mean_outputs: int = 0,
                 y_mean=None, y_std=None,
-                mean_y_mean=None, mean_y_std=None) -> CovarianceSurrogateModel:
+                mean_y_mean=None, mean_y_std=None,
+                dropout: float = 0.05, activation: str = "elu") -> CovarianceSurrogateModel:
     """Factory retained for compatibility with analysis/inference utilities."""
     return CovarianceSurrogateModel(
         n_inputs, n_chol_outputs, n_mean_outputs=n_mean_outputs,
         y_mean=y_mean, y_std=y_std,
         mean_y_mean=mean_y_mean, mean_y_std=mean_y_std,
+        dropout=dropout, activation=activation,
     )
 
 
@@ -215,7 +211,7 @@ class CovarianceAwareLoss(nn.Module):
 
 
 # ── Training ───────────────────────────────────────────────────────────────────
-def run_epoch(model, loader, criterion, optimizer, device, train: bool):
+def run_epoch(model, loader, criterion, optimizer, device, train: bool, max_grad_norm=None):
     model.train(train)
     total_loss = 0.0
     n_samples = 0
@@ -230,6 +226,8 @@ def run_epoch(model, loader, criterion, optimizer, device, train: bool):
             if train:
                 optimizer.zero_grad()
                 loss.backward()
+                if max_grad_norm is not None:
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
                 optimizer.step()
             total_loss += loss.item() * len(X_batch)
             n_samples += len(X_batch)
@@ -246,6 +244,8 @@ def build_parser():
     parser.add_argument("--epochs", type=int, default=200)
     parser.add_argument("--batch-size", type=int, default=256)
     parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--grad-clip", type=float, default=None,
+                        help="Max gradient norm for clipping (default: None = no clipping)")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument(
         "--output-dir",
@@ -309,6 +309,19 @@ def build_parser():
         type=float,
         default=1.0,
         help="Weight for mean beam (energy/time) loss relative to covariance loss (default: 1.0)",
+    )
+    parser.add_argument(
+        "--dropout",
+        type=float,
+        default=0.05,
+        help="Dropout rate for hidden layers (default: 0.05; 0 disables)",
+    )
+    parser.add_argument(
+        "--activation",
+        type=str,
+        default="elu",
+        choices=["elu", "tanh", "relu", "silu"],
+        help="Activation function for hidden layers (default: elu)",
     )
     return parser
 
@@ -429,8 +442,15 @@ def main():
         n_inputs, n_chol_outputs, n_mean_outputs=n_mean_outputs,
         y_mean=y_mean_t, y_std=y_std_t,
         mean_y_mean=mean_y_mean_t, mean_y_std=mean_y_std_t,
+        dropout=args.dropout, activation=args.activation,
     ).to(device)
     print(f"[run] Model architecture:\n{model}", flush=True)
+
+    # Save model config so analysis/inference scripts can reconstruct the architecture
+    model_config = {"dropout": args.dropout, "activation": args.activation}
+    with open(output_dir / "model_config.json", "w") as f:
+        json.dump(model_config, f, indent=2)
+    print(f"[run] Model config saved to {output_dir}/model_config.json", flush=True)
 
     criterion = CovarianceAwareLoss(
         model=model,

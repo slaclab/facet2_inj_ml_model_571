@@ -6,7 +6,15 @@ It includes both inference assets and the training implementation.
 
 ## Model Description
 
-The model was trained on IMPACT-T simulation data to predict beam properties at screen 571. It consumes 19 scalar inputs (machine PVs or simulator parameters) and predicts:
+The model was trained on IMPACT-T simulation data to predict beam properties at screen 571. Training data is filtered to samples within beam-quality thresholds:
+
+- σ_x, σ_y < 5 mm
+- Relative energy spread < 5×10⁻³
+- Normalized projected emittance (x, y) < 20 μm
+
+Additionally, samples with fewer than 90,000 alive particles (out of 100,000) are excluded during target extraction to remove outliers.
+
+The model consumes 19 scalar inputs (machine PVs or simulator parameters) and predicts:
 
 - A full **6×6 beam covariance matrix** (from 21 lower-triangular Cholesky factors)
 - All **6 phase-space mean values**: mean_x (m), mean_px (eV/c), mean_y (m), mean_py (eV/c), mean_t (s), mean_pz (eV/c) (optional, via `full=True`)
@@ -112,17 +120,17 @@ The machine-input model maps PVs to simulator parameters automatically via an af
 
 ## Model Architecture
 
-19 inputs → shared backbone → Cholesky head (21 outputs → 6×6 cov) + mean head (2 outputs):
+19 inputs → shared backbone → Cholesky head (21 outputs → 6×6 cov) + mean head (6 outputs):
 
 ```
 Backbone:
   Linear(19 -> 100), ELU
-  Linear(100 -> 200), ELU, Dropout(0.05)
-  Linear(200 -> 200), ELU, Dropout(0.05)
-  Linear(200 -> 300), ELU, Dropout(0.05)
-  Linear(300 -> 300), ELU, Dropout(0.05)
-  Linear(300 -> 200), ELU, Dropout(0.05)
-  Linear(200 -> 100), ELU, Dropout(0.05)
+  Linear(100 -> 200), ELU
+  Linear(200 -> 200), ELU
+  Linear(200 -> 300), ELU
+  Linear(300 -> 300), ELU
+  Linear(300 -> 200), ELU
+  Linear(200 -> 100), ELU
   Linear(100 -> 100), ELU
   Linear(100 -> 100), ELU
 
@@ -132,6 +140,8 @@ Cholesky head:
 Mean head:
   Linear(100 -> 6) -> [mean_x, mean_px, mean_y, mean_py, mean_t, mean_pz]
 ```
+
+No dropout is used in the current model (dropout=0.0). The activation function and dropout rate are configurable via `--activation` and `--dropout` arguments to the training script.
 
 ### Normalization
 
@@ -191,13 +201,56 @@ The full model uses custom lume-torch subclasses (in `lume_model_utils.py`) to h
 
 The training implementation lives in `facet2_inj_ml_model_571/training.py`.
 
+Training command (current model):
+
+```bash
+python -m facet2_inj_ml_model_571.training \
+    --cov-loss l1 --epochs 200 --patience 40 --batch-size 256 --lr 1e-3 \
+    --dropout 0.0 \
+    --finetune-batch-sizes 32 8 2 --finetune-epochs-per-stage 300 \
+    --finetune-lr 1e-4 --finetune-lr-decay 0.5 \
+    --finetune-plateau-patience 5 --finetune-min-lr 1e-6 \
+    --train-csv dataset-filtered-train.csv --val-csv dataset-filtered-val.csv \
+    --output-dir model-output-571-filtered2
+```
+
+Key training parameters:
+- **Dropout**: 0.0 (disabled)
+- **Activation**: ELU (default)
+- **Loss**: L1 in per-element normalized covariance space
+- **Training strategy**: 200 base epochs + 3 finetuning stages (batch 32→8→2, 300 epochs each, LR cosine annealing)
+- **Data**: Filtered dataset (beam-quality thresholds applied before splitting)
+
 For compatibility with serialized PyTorch artifacts that reference `train.CovarianceSurrogateModel`, the package registers a `train` compatibility alias from `facet2_inj_ml_model_571/__init__.py`.
 
 Expected data requirements:
 
-- The input features are the seven simulator/training columns listed in the table above.
+- The input features are the 19 simulator/training columns listed in the table above.
 - The targets are 21 lower-triangular Cholesky columns named `cov_chol_0` through `cov_chol_20`.
+- The dataset should be pre-filtered using beam-quality thresholds (see `filter_dataset.py` in the modeling repository).
 - The repository does not include dataset generation or preprocessing code for producing these CSV files from raw simulation data.
+
+## BeamOutputModel
+
+The `BeamOutputModel` class wraps the surrogate model to produce openPMD `ParticleGroup` beam distributions from predicted covariance matrices. It uses `distgen` to generate particles via Cholesky decomposition of the covariance, with automatic t→z conversion.
+
+```python
+from facet2_inj_ml_model_571 import load_model
+from facet2_inj_ml_model_571.beam_output_model import BeamOutputModel
+
+beam_model = BeamOutputModel(load_model("machine"), n_particles=10000)
+beam_model.set({"QUAD:IN10:121:BCTRL": -0.015, ...})
+output_beam = beam_model.final_particles  # openPMD ParticleGroup
+```
+
+## Tests
+
+Run the test suite:
+
+```bash
+pip install -e ".[test]"
+pytest tests/ -v
+```
 
 If your previous training workflow created those CSVs in a separate repository, that preprocessing step is still required before retraining here.
 

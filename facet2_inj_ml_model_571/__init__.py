@@ -21,6 +21,7 @@ def __getattr__(name):
 
 
 sys.modules.setdefault("train", sys.modules[__name__])
+sys.modules.setdefault("train2", sys.modules[__name__])
 
 __version__ = "0.1.0"
 __all__ = ["load_model", "BeamOutputModel", "pv_mapping", *_LEGACY_TRAIN_EXPORTS]
