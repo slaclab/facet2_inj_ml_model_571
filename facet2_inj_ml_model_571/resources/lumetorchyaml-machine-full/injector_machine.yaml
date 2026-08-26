@@ -8,11 +8,11 @@ input_variables:
     default_value: 81.91018676757812}
   KLYS:LI10:31:PHAS: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
     default_value: 9.929449081420898}
-  L0AF_scale:rf_field_scale: {variable_class: TorchScalarVariable, read_only: false,
+  ACCL:LI10:81:POWER:W0CH0: {variable_class: TorchScalarVariable, read_only: false,
     default_validation_config: none, default_value: -29788066.0}
   KLYS:LI10:41:PHAS: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
     default_value: 122.47967529296875}
-  L0BF_scale:rf_field_scale: {variable_class: TorchScalarVariable, read_only: false,
+  ACCL:LI10:41:POWER:W0CH0: {variable_class: TorchScalarVariable, read_only: false,
     default_validation_config: none, default_value: 5155308.0}
   QUAD:IN10:361:BCTRL: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
     default_value: -2.4070820808410645}
@@ -34,8 +34,8 @@ input_variables:
     default_validation_config: none, default_value: -0.7966734766960144}
   TORO:IN10:591:TMIT_PC: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
     default_value: 819.11962890625}
-  impact_VCC_Cal: {variable_class: TorchScalarVariable, read_only: false, default_validation_config: none,
-    default_value: -1.514474661234999e-06}
+  CTHD:IN10:111:RESOLUTION: {variable_class: TorchScalarVariable, read_only: false,
+    default_validation_config: none, default_value: -1.514474661234999e-06}
 output_variables:
   covariance_matrix:
     variable_class: TorchNDVariable
