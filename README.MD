@@ -56,9 +56,9 @@ Runtime input variables (19):
 | 2 | `KLYS:LI10:21:AMPL` |
 | 3 | `KLYS:LI10:21:PHAS` |
 | 4 | `KLYS:LI10:31:PHAS` |
-| 5 | `L0AF_scale:rf_field_scale` |
+| 5 | `ACCL:LI10:81:POWER:W0CH0` |
 | 6 | `KLYS:LI10:41:PHAS` |
-| 7 | `L0BF_scale:rf_field_scale` |
+| 7 | `ACCL:LI10:41:POWER:W0CH0` |
 | 8 | `QUAD:IN10:361:BCTRL` |
 | 9 | `QUAD:IN10:371:BCTRL` |
 | 10 | `QUAD:IN10:425:BCTRL` |
@@ -67,10 +67,9 @@ Runtime input variables (19):
 | 13 | `QUAD:IN10:525:BCTRL` |
 | 14 | `SOLN:IN10:121:BCTRL` |
 | 15 | `QUAD:IN10:122:BCTRL` |
-| 16 | `distgen:VCC` |
-| 17 | `distgen:t_dist:sigma_t:value` |
-| 18 | `TORO:IN10:591:TMIT_PC` |
-| 19 | `impact_VCC_Cal` |
+| 16 | `distgen:t_dist:sigma_t:value` |
+| 17 | `TORO:IN10:591:TMIT_PC` |
+| 18 | `CTHD:IN10:111:RESOLUTION` |
 
 ### Simulator-input model
 
@@ -105,9 +104,9 @@ The machine-input model maps PVs to simulator parameters automatically via an af
 | `SQ10122:b1_gradient` | `QUAD:IN10:122:BCTRL` | -2.1 | 0 |
 | `distgen:t_dist:sigma_t:value` | (same) | 1.0 | -1.17 |
 | `distgen:total_charge:value` | `TORO:IN10:591:TMIT_PC` | 1.0 | 0 |
-| `L0AF_scale:rf_field_scale` | (same) | 1.0 | -62380013.2 |
+| `L0AF_scale:rf_field_scale` | `ACCL:LI10:81:POWER:W0CH0` | 1.0 | -62380013.2 |
 | `L0AF_phase:theta0_deg` | `KLYS:LI10:31:PHAS` | 1.0 | 25.5 |
-| `L0BF_scale:rf_field_scale` | (same) | 1.0 | -59886109.4 |
+| `L0BF_scale:rf_field_scale` | `ACCL:LI10:41:POWER:W0CH0` | 1.0 | -59886109.4 |
 | `L0BF_phase:theta0_deg` | `KLYS:LI10:41:PHAS` | 1.0 | 137.5 |
 | `QA10361` | `QUAD:IN10:361:BCTRL` | -1.08 | 0 |
 | `QA10371` | `QUAD:IN10:371:BCTRL` | -1.08 | 0 |
@@ -115,16 +114,15 @@ The machine-input model maps PVs to simulator parameters automatically via an af
 | `QE10441` | `QUAD:IN10:441:BCTRL` | -1.08 | 0 |
 | `QE10511` | `QUAD:IN10:511:BCTRL` | -1.08 | 0 |
 | `QE10525` | `QUAD:IN10:525:BCTRL` | -1.08 | 0 |
-| `distgen:VCC` | (same) | 1.0 | 0 |
-| `impact_VCC_Cal` | (same) | 1.0 | -7.02e-6 |
+| `impact_VCC_Cal` | `CTHD:IN10:111:RESOLUTION` | 1.0 | -7.02e-6 |
 
 ## Model Architecture
 
-19 inputs → shared backbone → Cholesky head (21 outputs → 6×6 cov) + mean head (6 outputs):
+18 inputs → shared backbone → Cholesky head (21 outputs → 6×6 cov) + mean head (6 outputs):
 
 ```
 Backbone:
-  Linear(19 -> 100), ELU
+  Linear(18 -> 100), ELU
   Linear(100 -> 200), ELU
   Linear(200 -> 200), ELU
   Linear(200 -> 300), ELU
